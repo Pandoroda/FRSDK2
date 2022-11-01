@@ -32,9 +32,9 @@ def cifar_loader(batch_size, data_dir, data):
     transform_test = transforms.Compose([transforms.ToTensor(), normalize, ])
 
     trainset = datasets.CIFAR100(root=os.path.join(data_dir, data), train=True,
-                                 download=False, transform=transform_train)
+                                 download=True, transform=transform_train)
     testset = datasets.CIFAR100(root=os.path.join(data_dir, data), train=False,
-                                download=False, transform=transform_test)
+                                download=True, transform=transform_test)
 
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, pin_memory=True)
     test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, pin_memory=True)
