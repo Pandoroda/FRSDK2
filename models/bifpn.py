@@ -93,7 +93,7 @@ class BiFPN_layer(nn.Module):
             w = w / (torch.sum(w, dim=0) + self.epsilon)
             up_sample.insert(0,
                              self.up_conv[-i](w[0] * F.relu(inputs[-i - 1])
-                                              + w[1] * self.up_sample(F.relu(up_sample[0]))))
+                                              + w[1] * self.up_sample(F.relu(up_sample[0]))))#Pi
         out_layer.append(up_sample[0])
 
         # down
@@ -104,7 +104,7 @@ class BiFPN_layer(nn.Module):
                 out_layer.append(self.down_conv[i - 1](w[0] * F.relu(input_trans[i - 1])
                                                        + w[1] * F.relu(up_sample[i])
                                                        + w[2] * self.down_sample[i - 1](F.relu(out_layer[-1]))
-                                                       )
+                                                       )#Ti  down_sasmple(最大池进行下采样 resize())
                                  )
             else:
                 out_layer.append(

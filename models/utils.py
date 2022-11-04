@@ -2,6 +2,16 @@ import math
 import torch.nn as nn
 import torch.nn.functional as F
 
+class GELU(nn.Module):#zengen
+    def __init__(self):
+        super(GELU, self).__init__()
+    def forward(self, x):
+        #return 0.5*x*(1+torch.tanh(np.sqrt(2/np.pi)*(x+0.044715*torch.pow(x,3))))
+        import torch
+        return x * 0.5 * (1.0 + torch.erf(x / math.sqrt(2.0)))
+
+
+
 class MaxPool2dStaticSamePadding(nn.Module):
     def __init__(self, *args, **kwargs):
         super().__init__()

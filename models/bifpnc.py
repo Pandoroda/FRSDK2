@@ -78,45 +78,45 @@ class BiFPN_layer(nn.Module):
                 self.up_conv.append(block(channels * width, channels * width, 3, 1, 1, up_depth))
                 self.up_weight.append(nn.Parameter(torch.ones(2, dtype=torch.float32), requires_grad=True))
 
-        self.relu = nn.ReLU()
+        self.gelu = nn.GELU()
 
         self.epsilon = 1e-6
 
     def forward(self, inputs, preact=False):
-        input_trans = [self.lat_conv2[i - 1](F.relu(inputs[i])) for i in range(1, len(inputs))]
+        input_trans = [self.lat_conv2[i - 1](F.gelu(inputs[i])) for i in range(1, len(inputs))]
         if self.first_time:
-            inputs = [self.lat_conv[i](F.relu(inputs[i])) for i in range(len(inputs))] # for od case
+            inputs = [self.lat_conv[i](F.gelu(inputs[i])) for i in range(len(inputs))] # for od case
 
         # up
         up_sample = [inputs[-1]]
         out_layer = []
         for i in range(1, len(inputs)):
-            w = self.relu(self.up_weight[-i])
+            w = self.gelu(self.up_weight[-i])
             w = w / (torch.sum(w, dim=0) + self.epsilon)
 
             up_sample.insert(0,
-                             self.up_conv[-i](w[0] * F.relu(inputs[-i - 1])
-                                              + w[1] * self.up_sample[-i](F.relu(up_sample[0]))))
+                             self.up_conv[-i](w[0] * F.gelu(inputs[-i - 1])
+                                              + w[1] * self.up_sample[-i](F.gelu(up_sample[0]))))
 
         out_layer.append(up_sample[0])
 
         # down
         for i in range(1, len(inputs)):
-            w = self.relu(self.down_weight[i - 1])
+            w = self.gelu(self.down_weight[i - 1])
             w = w / (torch.sum(w, dim=0) + self.epsilon)
             if i < len(inputs) - 1:
-                out_layer.append(self.down_conv[i - 1](w[0] * F.relu(input_trans[i - 1])
-                                                       + w[1] * F.relu(up_sample[i])
-                                                       + w[2] * self.down_sample[i - 1](F.relu(out_layer[-1]))
+                out_layer.append(self.down_conv[i - 1](w[0] * F.gelu(input_trans[i - 1])
+                                                       + w[1] * F.gelu(up_sample[i])
+                                                       + w[2] * self.down_sample[i - 1](F.gelu(out_layer[-1]))
                                                        )
                                  )
             else:
                 out_layer.append(
-                    self.down_conv[i - 1](w[0] * F.relu(input_trans[i - 1])
-                                          + w[1] * self.down_sample[i - 1](F.relu(out_layer[-1]))
+                    self.down_conv[i - 1](w[0] * F.gelu(input_trans[i - 1])
+                                          + w[1] * self.down_sample[i - 1](F.gelu(out_layer[-1]))
                                           )
                 )
 
         if not preact:
-            return [F.relu(f) for f in out_layer]
+            return [F.gelu(f) for f in out_layer]
         return out_layer
